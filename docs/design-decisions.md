@@ -1,58 +1,52 @@
-# Design decisions
+# Design decisions and evidence
 
-## Context
+## Problem and background
 
-This case explores an indoor AI image-editing workflow. A local edit is not only a request to change one object. It also needs a clear boundary around what must remain stable: spatial structure, scale, lighting, materials, and unrelated objects.
+An interior image edit is constrained by more than the selected object. A useful result must preserve spatial structure, camera framing, scale, lighting, materials, and unrelated furniture while changing a clearly defined target. The interaction therefore needs to communicate both sides of the request: **what changes** and **what stays**.
 
-The interaction model treats the task as a contract between **change** and **keep**.
+## Evidence source
 
-## V1 → V2 → V3
+The current visual source is the Figma design file `OQFyibG49fomUftKGp2JAl`, Page `01 · Screens` (`3:51`). The three complete frames are:
 
-| Version | Problem | Change | Trade-off | Validation boundary |
-|---|---|---|---|---|
-| V1 · START | The generation process and intermediate states were difficult to see. | Expose the chain from source image to reference, extracted object, fusion preview, and result. | More process visibility can turn an interior edit into workflow management. | Design inference; no user walkthrough result is included. |
-| V2 · EXPOSE | Users could not easily tell how the system interpreted the reference and the room. | Show AI understanding, reference fit, generation scope, and priority-preserve items before generation. | Earlier correction is possible, but too much explanation can increase reading load. | Design inference; no measured misunderstanding or correction rate is claimed. |
-| V3 · NARROW | The flow still risked making users manage the process instead of the edit. | Narrow the task to object / region, preserve constraints, candidate comparison, and apply / undo / history. | A shorter decision path may reduce workflow burden, but range understanding and recovery still need testing. | Current design direction; no usability result is claimed. |
+| Version | Frame | Evidence in the frame |
+|---|---|---|
+| V1 | `25:4` | Original space, reference input, extracted object, selected placement, fusion preview, pending result, and the first action surface. |
+| V2 | `282:2288` | Stage-based flow, placement space, generation scope, preserve-structure toggle, preserved furniture, and lighting confirmation. |
+| V3 | `278:1025` | AI understanding, reference, change, preserve chips, generation scope, candidate comparison, Apply, Undo, and History. |
 
-## Core interaction contract
+These PNGs were exported directly from those Figma frames on 2026-10-20 and visually checked as 1440 × 1024 complete interface frames. They replace the earlier public-package images; the earlier images are not reused here.
 
-1. Select the object or region to change.
-2. Set priority-preserve constraints such as structure, windows, furniture, floor, lighting, and other objects.
-3. Compare generated candidates and read the visible change summary.
-4. Apply, undo, reject, or revisit the decision through history.
+## Iteration logic
 
-The proposed division of responsibility is:
+### V1 · START — make the workflow visible
 
-- AI recognizes objects and spatial relationships, adapts references, generates candidates, and organizes differences.
-- The user confirms scope, target change, preserve constraints, comparison choice, and final apply / undo / rejection.
+The first direction lays out the full chain: original space → reference input → extracted object → selected placement → fusion preview → result. This makes the system’s intermediate states legible and gives the user direct object-level actions. The trade-off is that the user may have to manage a multi-step production workflow instead of simply making a controlled edit.
 
-## Visual evidence
+### V2 · EXPOSE — make the generation contract reviewable
 
-### V1 · START
+The second direction introduces a stage strip and an AI assistant panel. Before generation, the user can see the target, the generation range, whether the original structure is preserved, which other furniture is kept, and whether lighting is matched. This moves error correction earlier. The trade-off is explanation load: a transparent assistant can become another panel the user must read.
 
-![V1 · START](../assets/v1-start.png)
+### V3 · NARROW — make the decision reversible
 
-The screen exposes a broad workflow and candidate set. Its value is process visibility; its risk is making the user manage too many intermediate states.
+The third direction narrows the active task to the room canvas plus a focused AI assistant. It keeps the reference, the requested change, the preserve priorities, and the generation scope visible; then it makes candidate comparison and the Apply / Undo / History path explicit. This is a shorter decision loop, but it still needs validation that users understand the selected range and can recover confidently from a wrong candidate.
 
-### V2 · EXPOSE
+## Task flow and state model
 
-![V2 · EXPOSE](../assets/v2-expose.png)
+1. Select an object or region in the original space.
+2. Add a reference or describe the desired change.
+3. Confirm the target and generation scope.
+4. Set or review the preserve constraints: structure, camera, doors, ceiling, floor, other furniture, and lighting.
+5. Generate multiple candidates.
+6. Compare candidates, apply one, or recover through Undo and History.
 
-The screen moves explanation closer to the decision: reference adaptation, extracted object, generation scope, and preserve constraints become visible before generation.
+The state model is intentionally visible: selected target → understood contract → pre-generation confirmation → candidate set → applied result / reversible history.
 
-### V3 · NARROW
+## AI and user responsibilities
 
-![V3 · NARROW](../assets/v3-narrow.png)
+The AI should identify the target, interpret the reference, propose a generation scope, surface likely preserve constraints, and generate candidates. The user remains responsible for confirming the target, correcting the scope, choosing what must stay, comparing candidates, and deciding whether to apply or undo. The interface should expose uncertainty instead of treating an AI interpretation as a final decision.
 
-The screen keeps the room canvas central and makes change, preserve, compare, apply, undo, and history explicit. It is a product direction, not a working image-generation interface.
+## Current plan and unvalidated areas
 
-## What remains unvalidated
+The current design direction is to preserve the V3 decision loop while carrying forward V1’s concrete object manipulation and V2’s pre-generation confirmation. The next validation should test range understanding, preserve-constraint comprehension, candidate comparison, and recovery after a wrong result.
 
-- Whether “change + keep” is natural for interior-editing users.
-- Whether the canvas entry is more direct than a text-first or hybrid entry.
-- Whether the change summary helps users compare candidates.
-- Whether users can understand the edit boundary and recover from a wrong application.
-- Steps, time, context switches, error points, satisfaction, and task success.
-- Real model output quality and pixel-level stability outside the intended edit region.
-
-The repository does not claim that any of these outcomes improved. The three images are static design evidence generated as visual material; no online model or runnable product is included.
+Not yet validated: user research, task success, time-on-task, satisfaction, model quality, real API behavior, online generation, accessibility, responsive behavior, and production implementation. These frames are static design evidence only.
